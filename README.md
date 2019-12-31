@@ -35,7 +35,7 @@ import (
 
 func main() {
 
-	res, err := GetToken("http://localhost:9001/oauth", "user", "pass", "...", "...")
+	res, err := oauth.GetToken("http://localhost:9001/oauth", "user", "pass", "...", "...")
 
 	if err != nil {
 		fmt.Println("Error")
