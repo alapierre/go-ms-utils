@@ -18,3 +18,15 @@ func TestSomeToken(t *testing.T) {
 		t.Errorf("token is not active, http status code = %d; want 200", res.StatusCode)
 	}
 }
+
+func TestGetToken(t *testing.T) {
+
+	res, err := GetToken("http://localhost:9001/oauth", "admin", "admin", "client", "secret")
+
+	if err != nil {
+		fmt.Println("Error")
+		panic(err)
+	}
+
+	fmt.Println(res)
+}
