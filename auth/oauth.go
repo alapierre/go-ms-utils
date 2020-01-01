@@ -4,34 +4,29 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/alapierre/go-ms-utils/commons"
 	"log"
 	"net/http"
 	"strings"
 )
 
 type TokenInfo struct {
-	UserName         string   `json:"user_name,omitempty"`
-	Active           bool     `json:"active,omitempty"`
-	Exp              int      `json:"exp,omitempty"`
-	ClientId         string   `json:"client_id,omitempty"`
-	Scope            []string `json:"scope,omitempty"`
-	Authorities      []string `json:"authorities,omitempty"`
-	Error            string   `json:"error,omitempty"`
-	ErrorDescription string   `json:"error_description,omitempty"`
-	StatusCode       int
+	UserName    string   `json:"user_name,omitempty"`
+	Active      bool     `json:"active,omitempty"`
+	Exp         int      `json:"exp,omitempty"`
+	ClientId    string   `json:"client_id,omitempty"`
+	Scope       []string `json:"scope,omitempty"`
+	Authorities []string `json:"authorities,omitempty"`
 }
 
 type Token struct {
-	AccessToken      string `json:"access_token"`
-	TokenType        string `json:"token_type"`
-	RefreshToken     string `json:"refresh_token"`
-	ExpiresIn        int64  `json:"expires_in"`
-	Error            string `json:"error,omitempty"`
-	ErrorDescription string `json:"error_description,omitempty"`
-	StatusCode       int
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
 }
 
-func CheckToken(url, token string) (TokenInfo, error) {
+func CheckToken(url, token string) (*TokenInfo, error) {
 
 	url = trimTailingSlash(url)
 	url = fmt.Sprintf("%s/check_token?token=%s", url, token)
@@ -40,7 +35,7 @@ func CheckToken(url, token string) (TokenInfo, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return TokenInfo{}, err
+		return nil, err
 	}
 
 	req.Header.Add("Accept", "application/json")
@@ -49,23 +44,26 @@ func CheckToken(url, token string) (TokenInfo, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return TokenInfo{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	log.Printf("response status %d", resp.StatusCode)
 
+	if resp.StatusCode != 200 {
+		return nil, commons.MakeError(resp.Body)
+	}
+
 	var tokenInfo TokenInfo
 	err = json.NewDecoder(resp.Body).Decode(&tokenInfo)
 	if err != nil {
-		return TokenInfo{}, err
+		return nil, err
 	}
 
-	tokenInfo.StatusCode = resp.StatusCode
-	return tokenInfo, nil
+	return &tokenInfo, nil
 }
 
-func GetToken(url, user, password, client, secret string) (Token, error) {
+func GetToken(url, user, password, client, secret string) (*Token, error) {
 
 	url = trimTailingSlash(url)
 	url = fmt.Sprintf("%s/token?grant_type=password&username=%s&password=%s", url, user, password)
@@ -74,7 +72,7 @@ func GetToken(url, user, password, client, secret string) (Token, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return Token{}, err
+		return nil, err
 	}
 
 	req.Header.Add("Accept", "application/json")
@@ -86,20 +84,23 @@ func GetToken(url, user, password, client, secret string) (Token, error) {
 	server := &http.Client{}
 	resp, err := server.Do(req)
 	if err != nil {
-		return Token{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	log.Printf("response status %d", resp.StatusCode)
 
+	if resp.StatusCode != 200 {
+		return nil, commons.MakeError(resp.Body)
+	}
+
 	var token Token
 	err = json.NewDecoder(resp.Body).Decode(&token)
 	if err != nil {
-		return Token{}, err
+		return nil, err
 	}
 
-	token.StatusCode = resp.StatusCode
-	return token, nil
+	return &token, nil
 }
 
 func trimTailingSlash(url string) string {

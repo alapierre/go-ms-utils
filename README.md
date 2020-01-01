@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(res)
+	fmt.Printf("%#v\n", res)
 	
 }
 ```
@@ -42,6 +42,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(res)
+	fmt.Printf("%#v\n", res)
 }
 ```
